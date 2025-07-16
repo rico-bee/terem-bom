@@ -51,7 +51,6 @@ func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataF
 
 	var totalRainfall float64
 	var daysWithRainfall, daysWithNoRainfall, longestStreak, currentStreak int
-	var rainfallDays []float64
 	var prevRained bool
 
 	monthMap := make(map[time.Month][]DailyRecord)
@@ -60,7 +59,6 @@ func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataF
 			totalRainfall += rec.Rainfall
 			if rec.Rainfall > 0 {
 				daysWithRainfall++
-				rainfallDays = append(rainfallDays, rec.Rainfall)
 				if prevRained {
 					currentStreak++
 				} else {
