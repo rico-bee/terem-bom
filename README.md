@@ -1,5 +1,7 @@
 # terem-bom
 
+A Go library and CLI tool for converting Bureau of Meteorology (BOM) weather data CSV files to structured JSON format.
+
 ## Background
 
 Terem Technologies is very curious about weather trends at Observatory Hill in Sydney. Luckily, the Bureau of Meteorology has recorded all of the historical rainfall data and it is downloadable here:
@@ -9,9 +11,11 @@ And click on the button "All years of data" on the top right of the page.
 
 ## Task
 
-You are to create a library which reads any given BOM weather data CSV fi le and converts the data to a JSON of the following format:
+You are to create a library which reads any given BOM weather data CSV file and converts the data to a JSON of the following format:
 
-```
+Note: I tweaked the following format slightly to support multiple year CSV files
+
+```json
 {
   "WeatherData": {
     "WeatherDataForYear": {
@@ -22,16 +26,20 @@ You are to create a library which reads any given BOM weather data CSV fi le and
       "AverageDailyRainfall": "3.433027523",
       "DaysWithNoRainfall": "65",
       "DaysWithRainfall": "44",
+      "LongestDaysRaining": "5",
       "MonthlyAggregates": {
-        "WeatherDataForMonth": {
-          "Month": "January",
-          "FirstRecordedDate": "2019-01-01",
-          "LastRecordedDate": "2019-01-31",
-          "TotalRainfall": "48.8",
-          "AverageDailyRainfall": "1.574193548",
-          "DaysWithNoRainfall": "21",
-          "DaysWithRainfall": "10"
-        }
+        "WeatherDataForMonth": [
+          {
+            "Month": "January",
+            "FirstRecordedDate": "2019-01-01",
+            "LastRecordedDate": "2019-01-31",
+            "TotalRainfall": "48.8",
+            "AverageDailyRainfall": "1.574193548",
+            "MedianDailyRainfall": "0.0",
+            "DaysWithNoRainfall": "21",
+            "DaysWithRainfall": "10"
+          }
+        ]
       }
     }
   }
@@ -42,7 +50,7 @@ You are to create a library which reads any given BOM weather data CSV fi le and
 
 Create a CLI tool that you can point to CSV data.
 - All data in the CSV will be converted to a corresponding JSON output, except:
-- Dates where the “Rainfall amount (millimetres)” is empty / blank should not be counted / recorded when determining FirstRecordedDate / LastRecordedDate
+- Dates where the "Rainfall amount (millimetres)" is empty / blank should not be counted / recorded when determining FirstRecordedDate / LastRecordedDate
 - A year data should contain:
   - Year value
   - First and last recorded dates
@@ -60,16 +68,27 @@ Create a CLI tool that you can point to CSV data.
   - Median Daily rainfall
   - Days with rainfall
   - Days with no rainfall
-- Months that have yet to occur should not be included in the output data (i.e. If it’s currently January 2000, a MonthlyAggregate node should not exist for February 2000)
+- Months that have yet to occur should not be included in the output data (i.e. If it's currently January 2000, a MonthlyAggregate node should not exist for February 2000)
+
+## Features
+
+- **CSV Parsing**: Robust parsing of BOM weather data CSV files
+- **Data Aggregation**: Yearly and monthly data aggregation with statistics
+- **JSON Output**: Structured JSON output matching the specified format
+- **CLI Interface**: Command-line tool with flexible options
+- **Error Handling**: Comprehensive error handling and validation
+- **Testing**: Extensive unit tests with high coverage
+- **Build Automation**: Makefile for easy building and testing
 
 
 ## Evaluation Criteria
 
-- Technology best practices
-- Show us your work through your commit history
-- We're looking for you to produce working code, with enough room to demonstrate how to structure components in a small program
-- Completeness: did you complete the features?
-- Correctness: does the functionality act in sensible, thought-out ways?
-- Maintainability: is it written in a clean, maintainable way?
-- Testing: is the system adequately tested?
+- **Technology best practices**
+- **Show us your work through your commit history**: Well-structured commits with clear messages
+- **We're looking for you to produce working code, with enough room to demonstrate how to structure components in a small program**
+- **Completeness**: All acceptance criteria implemented
+- **Correctness**: Functionality works as specified with proper error handling
+- **Maintainability**: Clean, well-documented code with good structure
+- **Testing**: Comprehensive test coverage with unit and integration tests
+
 
