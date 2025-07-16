@@ -2,6 +2,36 @@
 
 A Go library and CLI tool for converting Bureau of Meteorology (BOM) weather data CSV files to structured JSON format.
 
+## Quick Start
+
+### Build and Convert
+
+1. **Build the application:**
+   ```bash
+   make build
+   ```
+
+2. **Convert a CSV file to JSON:**
+   ```bash
+   ./bin/bom convert -i your_data.csv -o output.json
+   ```
+
+### Example
+
+```bash
+# Build the tool
+make build
+
+# Convert BOM weather data
+./bin/bom convert -i test_Data/IDCJAC0009_066062_1800_Data.csv -o weather_output.json
+
+# Validate a CSV file
+./bin/bom validate -i test_Data/IDCJAC0009_066062_1800_Data.csv
+
+# Show help
+./bin/bom --help
+```
+
 ## Background
 
 Terem Technologies is very curious about weather trends at Observatory Hill in Sydney. Luckily, the Bureau of Meteorology has recorded all of the historical rainfall data and it is downloadable here:
