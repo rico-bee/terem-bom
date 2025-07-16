@@ -111,14 +111,4 @@ Create a CLI tool that you can point to CSV data.
 - **Build Automation**: Makefile for easy building and testing
 
 
-## Evaluation Criteria
-
-- **Technology best practices**
-- **Show us your work through your commit history**: Well-structured commits with clear messages
-- **We're looking for you to produce working code, with enough room to demonstrate how to structure components in a small program**
-- **Completeness**: All acceptance criteria implemented
-- **Correctness**: Functionality works as specified with proper error handling
-- **Maintainability**: Clean, well-documented code with good structure
-- **Testing**: Comprehensive test coverage with unit and integration tests
-
 
