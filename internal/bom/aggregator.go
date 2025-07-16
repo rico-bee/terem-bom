@@ -37,6 +37,20 @@ func (a *Aggregator) Aggregate(records []DailyRecord) WeatherData {
 	return WeatherData{WeatherDataForYear: yearlyAggregates}
 }
 
+// isFutureMonth checks if a date is in a future month relative to the current date
+func (a *Aggregator) isFutureMonth(year int, month time.Month) bool {
+	currentYear := time.Now().Year()
+	currentMonth := time.Now().Month()
+
+	if year > currentYear {
+		return true // Future year
+	}
+	if year == currentYear && month > currentMonth {
+		return true // Future month in current year
+	}
+	return false
+}
+
 func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataForYear {
 	if len(records) == 0 {
 		return WeatherDataForYear{}
@@ -57,12 +71,7 @@ func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataF
 	for _, rec := range records {
 		if rec.HasData {
 			// Check if this record is in a future month
-			isFutureMonth := false
-			if year > time.Now().Year() {
-				isFutureMonth = true
-			} else if year == time.Now().Year() && rec.Date.Month() > time.Now().Month() {
-				isFutureMonth = true
-			}
+			isFutureMonth := a.isFutureMonth(year, rec.Date.Month())
 
 			// Only include records that are not in future months
 			if !isFutureMonth {
@@ -98,20 +107,10 @@ func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataF
 	// Monthly aggregates - filter out future months
 	var months []time.Month
 	for m := range monthMap {
-		// Check if this month is in the future relative to current date
-		// If the year is the same as current year, only include months up to current month
-		// If the year is in the past, include all months
-		// If the year is in the future, exclude all months
-		if year < time.Now().Year() {
-			// Past year - include all months
+		// Only include months that are not in the future
+		if !a.isFutureMonth(year, m) {
 			months = append(months, m)
-		} else if year == time.Now().Year() {
-			// Current year - only include months up to current month
-			if m <= time.Now().Month() {
-				months = append(months, m)
-			}
 		}
-		// Future years are excluded entirely
 	}
 	sort.Slice(months, func(i, j int) bool { return months[i] < months[j] })
 
