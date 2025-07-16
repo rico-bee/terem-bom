@@ -34,7 +34,7 @@ make build
 
 ## Background
 
-Terem Technologies is very curious about weather trends at Observatory Hill in Sydney. Luckily, the Bureau of Meteorology has recorded all of the historical rainfall data and it is downloadable here:
+The Bureau of Meteorology has recorded all of the historical rainfall data and it is downloadable here:
 http://www.bom.gov.au/jsp/ncc/cdio/weatherData/av?p_nccObsCode=136&p_display_type=dailyDataFile&p_startYear=&p_c=&p_stn_num=066062
 
 And click on the button "All years of data" on the top right of the page.
