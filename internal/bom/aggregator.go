@@ -98,8 +98,8 @@ func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataF
 		Year:                 strconv.Itoa(year),
 		FirstRecordedDate:    firstDate,
 		LastRecordedDate:     lastDate,
-		TotalRainfall:        formatFloat(totalRainfall),
-		AverageDailyRainfall: formatFloat(avgRain),
+		TotalRainfall:        formatFloat(totalRainfall, 1),
+		AverageDailyRainfall: formatFloat(avgRain, 12),
 		DaysWithNoRainfall:   strconv.Itoa(daysWithNoRainfall),
 		DaysWithRainfall:     strconv.Itoa(daysWithRainfall),
 		LongestDaysRaining:   strconv.Itoa(longestStreak),
@@ -156,15 +156,19 @@ func (a *Aggregator) aggregateMonth(month time.Month, records []DailyRecord) Wea
 		Month:                month.String(),
 		FirstRecordedDate:    firstDate,
 		LastRecordedDate:     lastDate,
-		TotalRainfall:        formatFloat(totalRainfall),
-		AverageDailyRainfall: formatFloat(avgRain),
-		MedianDailyRainfall:  formatFloat(medianRain),
+		TotalRainfall:        formatFloat(totalRainfall, 1),
+		AverageDailyRainfall: formatFloat(avgRain, 12),
+		MedianDailyRainfall:  formatFloat(medianRain, 12),
 		DaysWithNoRainfall:   strconv.Itoa(daysWithNoRainfall),
 		DaysWithRainfall:     strconv.Itoa(daysWithRainfall),
 	}
 }
 
-// formatFloat formats a float64 to string with up to 12 decimal places
-func formatFloat(f float64) string {
-	return strconv.FormatFloat(f, 'f', 12, 64)
+// formatFloat formats a float64 to string with specified precision (defaults to 9)
+func formatFloat(f float64, precision ...int) string {
+	p := 9 // default precision
+	if len(precision) > 0 {
+		p = precision[0]
+	}
+	return strconv.FormatFloat(f, 'f', p, 64)
 }
