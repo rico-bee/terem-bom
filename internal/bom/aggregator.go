@@ -56,22 +56,35 @@ func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataF
 	monthMap := make(map[time.Month][]DailyRecord)
 	for _, rec := range records {
 		if rec.HasData {
-			totalRainfall += rec.Rainfall
-			if rec.Rainfall > 0 {
-				daysWithRainfall++
-				if prevRained {
-					currentStreak++
-				} else {
-					currentStreak = 1
-				}
-				if currentStreak > longestStreak {
-					longestStreak = currentStreak
-				}
-				prevRained = true
-			} else {
-				daysWithNoRainfall++
-				prevRained = false
+			// Check if this record is in a future month
+			isFutureMonth := false
+			if year > time.Now().Year() {
+				isFutureMonth = true
+			} else if year == time.Now().Year() && rec.Date.Month() > time.Now().Month() {
+				isFutureMonth = true
 			}
+
+			// Only include records that are not in future months
+			if !isFutureMonth {
+				totalRainfall += rec.Rainfall
+				if rec.Rainfall > 0 {
+					daysWithRainfall++
+					if prevRained {
+						currentStreak++
+					} else {
+						currentStreak = 1
+					}
+					if currentStreak > longestStreak {
+						longestStreak = currentStreak
+					}
+					prevRained = true
+				} else {
+					daysWithNoRainfall++
+					prevRained = false
+				}
+			}
+
+			// Always add to monthMap for monthly aggregation (filtering happens later)
 			monthMap[rec.Date.Month()] = append(monthMap[rec.Date.Month()], rec)
 		}
 	}
@@ -82,10 +95,23 @@ func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataF
 		avgRain = totalRainfall / float64(totalDays)
 	}
 
-	// Monthly aggregates
+	// Monthly aggregates - filter out future months
 	var months []time.Month
 	for m := range monthMap {
-		months = append(months, m)
+		// Check if this month is in the future relative to current date
+		// If the year is the same as current year, only include months up to current month
+		// If the year is in the past, include all months
+		// If the year is in the future, exclude all months
+		if year < time.Now().Year() {
+			// Past year - include all months
+			months = append(months, m)
+		} else if year == time.Now().Year() {
+			// Current year - only include months up to current month
+			if m <= time.Now().Month() {
+				months = append(months, m)
+			}
+		}
+		// Future years are excluded entirely
 	}
 	sort.Slice(months, func(i, j int) bool { return months[i] < months[j] })
 
@@ -98,7 +124,7 @@ func (a *Aggregator) aggregateYear(year int, records []DailyRecord) WeatherDataF
 		Year:                 strconv.Itoa(year),
 		FirstRecordedDate:    firstDate,
 		LastRecordedDate:     lastDate,
-		TotalRainfall:        formatFloat(totalRainfall, 1),
+		TotalRainfall:        formatFloat(totalRainfall, 12),
 		AverageDailyRainfall: formatFloat(avgRain, 12),
 		DaysWithNoRainfall:   strconv.Itoa(daysWithNoRainfall),
 		DaysWithRainfall:     strconv.Itoa(daysWithRainfall),
@@ -156,7 +182,7 @@ func (a *Aggregator) aggregateMonth(month time.Month, records []DailyRecord) Wea
 		Month:                month.String(),
 		FirstRecordedDate:    firstDate,
 		LastRecordedDate:     lastDate,
-		TotalRainfall:        formatFloat(totalRainfall, 1),
+		TotalRainfall:        formatFloat(totalRainfall, 12),
 		AverageDailyRainfall: formatFloat(avgRain, 12),
 		MedianDailyRainfall:  formatFloat(medianRain, 12),
 		DaysWithNoRainfall:   strconv.Itoa(daysWithNoRainfall),

@@ -2,6 +2,7 @@ package bom
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -30,19 +31,12 @@ func NewProcessorWithVerbose(verbose bool) *Processor {
 	}
 }
 
-// ProcessWeatherDataFile reads a CSV file and outputs to JSON file
-func (p *Processor) ProcessWeatherDataFile(inputPath, outputPath string) error {
-	// Open the CSV file
-	file, err := os.Open(inputPath)
-	if err != nil {
-		return fmt.Errorf("failed to open CSV file %s: %w", inputPath, err)
-	}
-	defer file.Close()
-
+// ProcessWeatherData processes weather data from a CSV reader and writes JSON to the writer
+func (p *Processor) ProcessWeatherData(input io.Reader, output io.Writer) error {
 	// Parse CSV file
-	records, err := p.parser.ParseCSV(file)
+	records, err := p.parser.ParseCSV(input)
 	if err != nil {
-		return fmt.Errorf("failed to parse CSV file %s: %w", inputPath, err)
+		return fmt.Errorf("failed to parse CSV: %w", err)
 	}
 
 	// Aggregate the records
@@ -54,11 +48,30 @@ func (p *Processor) ProcessWeatherDataFile(inputPath, outputPath string) error {
 		return fmt.Errorf("failed to convert weather data to JSON: %w", err)
 	}
 
-	// Write to JSON file
-	err = os.WriteFile(outputPath, jsonData, 0644)
+	// Write to output
+	_, err = output.Write(jsonData)
 	if err != nil {
-		return fmt.Errorf("failed to write output to %s: %w", outputPath, err)
+		return fmt.Errorf("failed to write output: %w", err)
 	}
 
 	return nil
+}
+
+// ProcessWeatherDataFile reads a CSV file and outputs to JSON file
+func (p *Processor) ProcessWeatherDataFile(inputPath, outputPath string) error {
+	// Open the CSV file
+	file, err := os.Open(inputPath)
+	if err != nil {
+		return fmt.Errorf("failed to open CSV file %s: %w", inputPath, err)
+	}
+	defer file.Close()
+
+	// Open output file for writing
+	outFile, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to create output file %s: %w", outputPath, err)
+	}
+	defer outFile.Close()
+
+	return p.ProcessWeatherData(file, outFile)
 }

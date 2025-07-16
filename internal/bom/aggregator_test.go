@@ -364,3 +364,42 @@ func TestAggregate_RecordsNotSorted(t *testing.T) {
 		t.Errorf("Expected last date 2020-01-03, got %s", yearData.LastRecordedDate)
 	}
 }
+
+func TestAggregate_FutureMonthsExcluded(t *testing.T) {
+	// Test that months that have yet to occur should not be included
+	// This test uses data from 2020, so future months should be excluded
+	// based on the current date (which is after 2020)
+
+	agg := NewAggregator()
+	records := []DailyRecord{
+		// January 2020 - should be included (past month)
+		{Date: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC), Rainfall: 10.0, HasData: true},
+		{Date: time.Date(2020, 1, 15, 0, 0, 0, 0, time.UTC), Rainfall: 5.0, HasData: true},
+		// February 2020 - should be included (past month)
+		{Date: time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC), Rainfall: 15.0, HasData: true},
+		{Date: time.Date(2020, 2, 15, 0, 0, 0, 0, time.UTC), Rainfall: 20.0, HasData: true},
+		// March 2020 - should be included (past month)
+		{Date: time.Date(2020, 3, 1, 0, 0, 0, 0, time.UTC), Rainfall: 25.0, HasData: true},
+	}
+
+	result := agg.Aggregate(records)
+
+	if len(result.WeatherDataForYear) != 1 {
+		t.Fatalf("Expected 1 yearly aggregate, got %d", len(result.WeatherDataForYear))
+	}
+
+	yearData := result.WeatherDataForYear[0]
+
+	// Since 2020 is in the past, all months should be included
+	if len(yearData.MonthlyAggregates.WeatherDataForMonth) != 3 {
+		t.Fatalf("Expected 3 monthly aggregates (all months from 2020), got %d", len(yearData.MonthlyAggregates.WeatherDataForMonth))
+	}
+
+	// Verify yearly totals include all months from 2020
+	if yearData.TotalRainfall != "75.000000000000" {
+		t.Errorf("Expected yearly total 75.000000000000 (all months), got %s", yearData.TotalRainfall)
+	}
+	if yearData.DaysWithRainfall != "5" {
+		t.Errorf("Expected yearly 5 days with rain (all months), got %s", yearData.DaysWithRainfall)
+	}
+}

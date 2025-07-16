@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/terem/bom/internal/bom"
@@ -24,6 +25,23 @@ Example:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			processor := bom.NewProcessorWithVerbose(*verbose)
 
+			if outputFile == "" {
+				// Write to stdout
+				inFile, err := os.Open(inputFile)
+				if err != nil {
+					return fmt.Errorf("failed to open input file %s: %w", inputFile, err)
+				}
+				defer inFile.Close()
+				if err := processor.ProcessWeatherData(inFile, cmd.OutOrStdout()); err != nil {
+					return fmt.Errorf("conversion failed: %w", err)
+				}
+				if *verbose {
+					fmt.Fprintf(cmd.ErrOrStderr(), "Successfully converted %s to stdout\n", inputFile)
+				}
+				return nil
+			}
+
+			// Write to file as before
 			err := processor.ProcessWeatherDataFile(inputFile, outputFile)
 			if err != nil {
 				return fmt.Errorf("conversion failed: %w", err)
@@ -39,7 +57,6 @@ Example:
 	cmd.Flags().StringVarP(&inputFile, "input", "i", "", "Input CSV file path (required)")
 	cmd.Flags().StringVarP(&outputFile, "output", "o", "", "Output JSON file path (required)")
 	cmd.MarkFlagRequired("input")
-	cmd.MarkFlagRequired("output")
 
 	return cmd
 }
