@@ -57,6 +57,25 @@ func (p *Processor) ProcessWeatherData(input io.Reader, output io.Writer) error 
 	return nil
 }
 
+// ValidateCSVFile validates a CSV file by attempting to parse it
+// Returns error if the file is invalid, nil if valid
+func (p *Processor) ValidateCSVFile(inputPath string) error {
+	// Open the CSV file
+	file, err := os.Open(inputPath)
+	if err != nil {
+		return fmt.Errorf("failed to open CSV file %s: %w", inputPath, err)
+	}
+	defer file.Close()
+
+	// Parse CSV file - if this succeeds, the file is valid
+	_, err = p.parser.ParseCSV(file)
+	if err != nil {
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	return nil
+}
+
 // ProcessWeatherDataFile reads a CSV file and outputs to JSON file
 func (p *Processor) ProcessWeatherDataFile(inputPath, outputPath string) error {
 	// Open the CSV file

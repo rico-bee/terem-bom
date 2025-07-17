@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/terem/bom/internal/bom"
@@ -27,15 +26,8 @@ Example:
 				fmt.Fprintf(cmd.ErrOrStderr(), "Validating CSV file: %s\n", inputFile)
 			}
 
-			// Create temporary output file for validation
-			tmpFile, err := os.CreateTemp("", "bom_validate_*.json")
-			if err != nil {
-				return fmt.Errorf("failed to create temp file for validation: %w", err)
-			}
-			tmpFile.Close()
-			defer os.Remove(tmpFile.Name())
-
-			err = processor.ProcessWeatherDataFile(inputFile, tmpFile.Name())
+			// Validate the CSV file
+			err := processor.ValidateCSVFile(inputFile)
 			if err != nil {
 				return fmt.Errorf("validation failed: %w", err)
 			}
