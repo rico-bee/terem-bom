@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -25,30 +26,36 @@ Example:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			processor := bom.NewProcessorWithVerbose(*verbose)
 
+			// Open input file
+			inFile, err := os.Open(inputFile)
+			if err != nil {
+				return fmt.Errorf("failed to open input file %s: %w", inputFile, err)
+			}
+			defer inFile.Close()
+
+			// Determine output destination
+			var output io.Writer
+			var outputName string
 			if outputFile == "" {
-				// Write to stdout
-				inFile, err := os.Open(inputFile)
+				output = cmd.OutOrStdout()
+				outputName = "stdout"
+			} else {
+				outFile, err := os.Create(outputFile)
 				if err != nil {
-					return fmt.Errorf("failed to open input file %s: %w", inputFile, err)
+					return fmt.Errorf("failed to create output file %s: %w", outputFile, err)
 				}
-				defer inFile.Close()
-				if err := processor.ProcessWeatherData(inFile, cmd.OutOrStdout()); err != nil {
-					return fmt.Errorf("conversion failed: %w", err)
-				}
-				if *verbose {
-					fmt.Fprintf(cmd.ErrOrStderr(), "Successfully converted %s to stdout\n", inputFile)
-				}
-				return nil
+				defer outFile.Close()
+				output = outFile
+				outputName = outputFile
 			}
 
-			// Write to file as before
-			err := processor.ProcessWeatherDataFile(inputFile, outputFile)
-			if err != nil {
+			// Process the data
+			if err := processor.ProcessWeatherData(inFile, output); err != nil {
 				return fmt.Errorf("conversion failed: %w", err)
 			}
 
 			if *verbose {
-				fmt.Fprintf(cmd.ErrOrStderr(), "Successfully converted %s to %s\n", inputFile, outputFile)
+				fmt.Fprintf(cmd.ErrOrStderr(), "Successfully converted %s to %s\n", inputFile, outputName)
 			}
 			return nil
 		},
